@@ -3,7 +3,7 @@
   
   class DestinyCommunication {
     /* @var string Bungie API Key used for all requests */
-    private $api_key;
+    private $apiKey;
     
     /* @var object curl handle used throughout */
     private $ch;
@@ -20,13 +20,13 @@
     /* @var array Tracks list of all batch items */
     var $batch_items;
     
-    public function __construct($api_key = null) {
+    public function __construct($apiKey = null) {
       $headers = $this->clearHeaders();
       
-      if (!$api_key) {
+      if (!$apiKey) {
         throw new \Exception("You must provide your Bungie API key from https://www.bungie.net/en/User/API");
       }
-      $this->api_key = $api_key;
+      $this->apiKey = $apiKey;
       $this->logger = new DestinyLogger();
       $this->logLevel(DestinyLogger::error);
     }
@@ -45,7 +45,7 @@
       curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
       
       $headers = array();
-      $this->headers['X-API-Key'] = $this->api_key;
+      $this->headers['X-API-Key'] = $this->apiKey;
       if (count($this->headers) > 0) {
         foreach($this->headers AS $header_name => $header_value) {
           $this->logger->log(sprintf("Adding header: %s", $header_name), DestinyLogger::debug_with_headers);

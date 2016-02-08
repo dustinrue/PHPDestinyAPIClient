@@ -40,8 +40,8 @@
     /*
      * @return \DestinyClient
      */
-    public function __construct($api_key) {
-      parent::__construct($api_key);
+    public function __construct($apiKey) {
+      parent::__construct($apiKey);
     }
 
     public function fetchManifestById($type, $id) {
@@ -50,39 +50,80 @@
       return $this->fetchData($url);
     }
 
-    public function fetchPlayerDetails($username, $platform = DESTINY_PLATFORM_XBOX) {
-      $username = str_replace(' ', '%20', $username);
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/SearchDestinyPlayer/%s/%s/", $platform, $username);
+    /**
+     * Fetches player details for given Gamertag or PSN ID
+     * @param string $gamertag Gamertag or PSN id
+     * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    public function fetchPlayerDetails($gamertag, $platform = DESTINY_PLATFORM_XBOX) {
+      $gamertag = str_replace(' ', '%20', $gamertag);
+      $url = sprintf("http://www.bungie.net/Platform/Destiny/SearchDestinyPlayer/%s/%s/", $platform, $gamertag);
 
       return $this->fetchData($url);
     }
 
-    public function fetchMembershipId($displayName, $membershipType = DESTINY_PLATFORM_XBOX) {
-      $displayName = str_replace(' ', '%20', $displayName);
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Stats/GetMembershipIdByDisplayName/%s/", $membershipType, $displayName);
+    /**
+     * Fetches membership id for given Gamertag or PSN ID
+     * @param string $gamertag Gamertag or PSN ID
+     * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    public function fetchMembershipId($gamertag, $membershipType = DESTINY_PLATFORM_XBOX) {
+      $gamertag = str_replace(' ', '%20', $gamertag);
+      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Stats/GetMembershipIdByDisplayName/%s/", $membershipType, $gamertag);
 
       return $this->fetchData($url);
     }
 
+    /**
+     * Fetches character data for given membership id
+     * @param string $membershipId membership id of user to fetch characters for
+     * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
+     * @return string The raw JSON as returned from Bungie's API
+     */
     public function fetchCharacters($membershipId, $platform = DESTINY_PLATFORM_XBOX) {
       $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Account/%s/", $platform, $membershipId);
 
       return $this->fetchData($url);
     }
 
-    public function fetchActivity($membershipId, $characterId, $page = 0, $activityType = 'None', $definitions = 'false', $platform = DESTINY_PLATFORM_XBOX) {
+    /**
+     * Fetches activity data for given membership id, character id and activity type
+     * @param string $membershipId membership id
+     * @param string $characterId character id
+     * @param string $activityType activity type id, use DESTINY_ACTIVITY_ALLPVP, etc
+     * @param string $page what page number to return
+     * @param string $definitions set to true to get activity definitions back
+     * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    public function fetchActivity($membershipId, $characterId, $activityType = 'None', $page = 0, $definitions = 'false', $platform = DESTINY_PLATFORM_XBOX) {
       $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/ActivityHistory/%s/%s/%s/?mode=%s&page=%s&definitions=%s", $platform, $membershipId, $characterId, $activityType, $page, $definitions);
 
       return $this->fetchData($url);
     }
 
+    /**
+     * Fetches post game carnage report for an activity id
+     * @param string $activityId the activity id
+     * @return string The raw JSON as returned from Bungie's API
+     */
     public function fetchPostGameCarnageReport($activityId) {
       $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/PostGameCarnageReport/%s/", $activityId);
 
       return $this->fetchData($url);
     }
     
-    public function fetchCharacterStats($membershipId, $characterId, $mode = NULL, $platform = DESTINY_PLATFORM_XBOX) {
+    /**
+     * Fetches character stats for givin membership and character id
+     * @param string $membershipId the membership id of the user
+     * @param string $characterId the character id for the character you want to get stats for
+     * @param string $activityType activity type id, use DESTINY_ACTIVITY_ALLPVP, etc
+     * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    public function fetchCharacterStats($membershipId, $characterId, $activityType = NULL, $platform = DESTINY_PLATFORM_XBOX) {
       if ($mode)
         $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/%s/%s/%s/?modes=%s", $platform, $membershipId, $characterId, $mode);
       else
