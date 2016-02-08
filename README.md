@@ -21,96 +21,96 @@ Example
 -------
 
 <code>
-#!/usr/bin/php
-<?php
-  // displayes number of times a player has played with or against
-  // another player
-  
-  $use_batch = false;
+    #!/usr/bin/php
+    <?php
+      // displayes number of times a player has played with or against
+      // another player
 
-  require_once 'vendor/autoload.php';
+      $use_batch = false;
 
-  $destiny = new PHPDestinyAPIClient\DestinyClient(<your Bungie API key>);
+      require_once 'vendor/autoload.php';
 
-  // on UNIX/Linux we can log to syslog, this is quite primitive but it'll display
-  // what requests were formed and how long they took or in the case of a batch
-  // how long the batch took
-  $destiny->logLevel(\PHPDestinyAPIClient\DestinyLogger::debug);
-  
-  // fetch my player details
-  $player = json_decode($destiny->fetchPlayerDetails('RealAngryMonkey'));
-  
-  $membershipId = $player->Response[0]->membershipId;
-  
-  $results = array();
-  function pullInstanceIds($results, $item) {
-    $results[] = $item->activityDetails->instanceId;
-    return $results;
-  }
+      $destiny = new PHPDestinyAPIClient\DestinyClient(<your Bungie API key>);
 
-  // fetch all activity for my Hunter
-  $page = 0;
-  $instanceIds = array();
-  while(true) {
-    $data = $destiny->fetchActivity($membershipId, '2305843009320446325', $page, DESTINY_ACTIVITY_TRIALS);
-    $activity = json_decode($data);
-    if (!property_exists($activity->Response->data, "activities"))
-      break;
+      // on UNIX/Linux we can log to syslog, this is quite primitive but it'll display
+      // what requests were formed and how long they took or in the case of a batch
+      // how long the batch took
+      $destiny->logLevel(\PHPDestinyAPIClient\DestinyLogger::debug);
 
-    $instanceIds = array_merge($instanceIds, array_reduce($activity->Response->data->activities, "pullInstanceIds"));
-    $page++;
-  }
+      // fetch my player details
+      $player = json_decode($destiny->fetchPlayerDetails('RealAngryMonkey'));
 
-  $people = array();
+      $membershipId = $player->Response[0]->membershipId;
 
-  // using the batch method
-  if ($use_batch) {
-    $results = array();
-    $destiny->batch(1);
-    foreach($instanceIds AS $instanceId) {
-      $destiny->fetchPostGameCarnageReport($instanceId);
-    }
-    $results = $destiny->performBatch(); 
-
-
-    // $results is an array of Guzzle http responses
-    // so we walk that array and pull out the body for each.
-    // It also contains what URL caused the response so if you 
-    // manually track the requests are you sending then you can
-    // determine where the data goes. In this example it's very 
-    // straight forward, we simply deal with the data
-    foreach($results AS $result) {
-      $data  = json_decode(sprintf("%s", $result['body']));
-      foreach($data->Response->data->entries AS $player) {
-        $gt = $player->player->destinyUserInfo->displayName;
-        $id = $player->player->destinyUserInfo->membershipId;
-        if (!array_key_exists($gt, $people))
-          $people[$gt] = 0;
-
-        $people[$gt]++;
+      $results = array();
+      function pullInstanceIds($results, $item) {
+        $results[] = $item->activityDetails->instanceId;
+        return $results;
       }
-    }
-  }
-  // not the batch method
-  else {
-    foreach($instanceIds AS $instanceId) {
-      $data = json_decode($destiny->fetchPostGameCarnageReport($instanceId));
-      foreach($data->Response->data->entries AS $player) {
-        // notice here that our processing is exactly the same
-        // as above
-        $gt = $player->player->destinyUserInfo->displayName;
-        $id = $player->player->destinyUserInfo->membershipId;
-        if (!array_key_exists($gt, $people))
-          $people[$gt] = 0;
 
-        $people[$gt]++;
+      // fetch all activity for my Hunter
+      $page = 0;
+      $instanceIds = array();
+      while(true) {
+        $data = $destiny->fetchActivity($membershipId, '2305843009320446325', $page, DESTINY_ACTIVITY_TRIALS);
+        $activity = json_decode($data);
+        if (!property_exists($activity->Response->data, "activities"))
+          break;
 
+        $instanceIds = array_merge($instanceIds, array_reduce($activity->Response->data->activities, "pullInstanceIds"));
+        $page++;
       }
-    }
-  }
 
-  arsort($people);
-  print_r($people);
+      $people = array();
+
+      // using the batch method
+      if ($use_batch) {
+        $results = array();
+        $destiny->batch(1);
+        foreach($instanceIds AS $instanceId) {
+          $destiny->fetchPostGameCarnageReport($instanceId);
+        }
+        $results = $destiny->performBatch(); 
+
+
+        // $results is an array of Guzzle http responses
+        // so we walk that array and pull out the body for each.
+        // It also contains what URL caused the response so if you 
+        // manually track the requests are you sending then you can
+        // determine where the data goes. In this example it's very 
+        // straight forward, we simply deal with the data
+        foreach($results AS $result) {
+          $data  = json_decode(sprintf("%s", $result['body']));
+          foreach($data->Response->data->entries AS $player) {
+            $gt = $player->player->destinyUserInfo->displayName;
+            $id = $player->player->destinyUserInfo->membershipId;
+            if (!array_key_exists($gt, $people))
+              $people[$gt] = 0;
+
+            $people[$gt]++;
+          }
+        }
+      }
+      // not the batch method
+      else {
+        foreach($instanceIds AS $instanceId) {
+          $data = json_decode($destiny->fetchPostGameCarnageReport($instanceId));
+          foreach($data->Response->data->entries AS $player) {
+            // notice here that our processing is exactly the same
+            // as above
+            $gt = $player->player->destinyUserInfo->displayName;
+            $id = $player->player->destinyUserInfo->membershipId;
+            if (!array_key_exists($gt, $people))
+              $people[$gt] = 0;
+
+            $people[$gt]++;
+
+          }
+        }
+      }
+
+      arsort($people);
+      print_r($people);
 </code>
 
 
