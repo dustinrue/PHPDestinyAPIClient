@@ -83,7 +83,7 @@
      * @return string The raw JSON as returned from Bungie's API
      */
     public function fetchCharacters($membershipId, $platform = DESTINY_PLATFORM_XBOX) {
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Account/%s/", $platform, $membershipId);
+      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Account/%s/Summary/", $platform, $membershipId);
 
       return $this->fetchData($url);
     }
