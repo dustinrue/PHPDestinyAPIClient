@@ -6,6 +6,15 @@ allowing you to build upon it however you need. The key feature in this API clie
 its ability to perform requests in parallel by enabling batch mode, creating a
 number of requests, performing the batch and dealing with the data. Example below.
 
+Errata
+------
+
+* The client doesn't cover all end points yet.
+* The activity types may not be correct
+
+Usage
+-----
+
 Currently in development but you're free to try it using composer
 
 ```
