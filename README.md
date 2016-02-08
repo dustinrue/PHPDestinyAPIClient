@@ -20,7 +20,7 @@ in composer.json
 Example
 -------
 
-``
+<code>
 #!/usr/bin/php
 <?php
   // displayes number of times a player has played with or against
@@ -111,7 +111,7 @@ Example
 
   arsort($people);
   print_r($people);
-``
+</code>
 
 
 
