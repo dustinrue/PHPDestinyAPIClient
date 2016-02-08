@@ -120,16 +120,17 @@ Results
 -------
 
 **Batched**
-
+```
 time ./test.php
 real	0m1.169s
 user	0m0.123s
 sys	0m0.046s
-
+```
 
 **Not batched**
-
+```
 time ./test.php
 real	0m5.739s
 user	0m0.073s
 sys	0m0.040s
+```
