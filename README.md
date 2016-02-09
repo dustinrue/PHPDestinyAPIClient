@@ -6,6 +6,8 @@ allowing you to build upon it however you need. The key feature in this API clie
 its ability to perform requests in parallel by enabling batch mode, creating a
 number of requests, performing the batch and dealing with the data. Example below.
 
+Full documentation for the Bungie API is here - https://www.bungie.net/platform/destiny/help/
+
 Errata
 ------
 
