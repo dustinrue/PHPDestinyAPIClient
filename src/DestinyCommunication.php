@@ -1,9 +1,9 @@
 <?php
   namespace PHPDestinyAPIClient;
   
+  // Primarily handles the actual communcation with Bungie's Destiny API
+  // including single requests as well as batched requests
   class DestinyCommunication {
-    /* @var string Bungie API Key used for all requests */
-    private $apiKey;
     
     /* @var object curl handle used throughout */
     private $ch;
@@ -20,13 +20,8 @@
     /* @var array Tracks list of all batch items */
     var $batch_items;
     
-    public function __construct($apiKey = null) {
+    public function __construct() {
       $headers = $this->clearHeaders();
-      
-      if (!$apiKey) {
-        throw new \Exception("You must provide your Bungie API key from https://www.bungie.net/en/User/API");
-      }
-      $this->apiKey = $apiKey;
       $this->logger = new DestinyLogger();
       $this->logLevel(DestinyLogger::error);
     }
@@ -37,15 +32,13 @@
     
     
     public function request($url, $post_data = null, $use_header = 0) {
-      if ($this->ch)
-        $this->logger->log("Curl handle exists and it's getting overwritten", DestinyLogger::debug);
       
       $this->ch = curl_init();
       curl_setopt($this->ch, CURLOPT_URL, $url);
       curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
       
       $headers = array();
-      $this->headers['X-API-Key'] = $this->apiKey;
+     
       if (count($this->headers) > 0) {
         foreach($this->headers AS $header_name => $header_value) {
           $this->logger->log(sprintf("Adding header: %s", $header_name), DestinyLogger::debug_with_headers);

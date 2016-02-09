@@ -1,8 +1,6 @@
 <?php
   namespace PHPDestinyAPIClient;
   
-  use PHPDestinyAPIClient\DestinyCommunication;
-  
   define('DESTINY_PLATFORM_XBOX', 1);
   define('DESTINY_PLATFORM_PS', 2);
   define('DESTINY_ACTIVITY_NONE', 1);
@@ -33,19 +31,76 @@
   define('DESTINY_ACTIVITY_MAYHEM_RUMBLE', 27);
   define('DESTINY_ACTIVITY_ZONE_CONTROL', 28);
   define('DESTINY_ACTIVITY_SRL', 29);
+  
 
-
+  // Builds the raw requests for DestintyCommunication and returns
+  // the raw JSON. Minimal error handling.
+  // All methods can be batched (batch(true)) but it's up to the calling application
+  // to determine if it makes sense.
   class DestinyClient extends DestinyCommunication {
-
+    /* @var Url Bungie API root */
+    private $apiRoot;
+    
+    /* @var string Bungie API Key used for all requests */
+    private $apiKey;
+    
+    
     /*
-     * @return \DestinyClient
+     * @return \PHPDestinyAPIClient\DestinyClient
      */
     public function __construct($apiKey) {
-      parent::__construct($apiKey);
+      parent::__construct();
+      
+      if (!$apiKey) {
+        throw new \Exception("You must provide your Bungie API key from https://www.bungie.net/en/User/API");
+      }
+      
+      $this->apiKey = $apiKey;
+      $this->setApiRoot("https://www.bungie.net/Platform/Destiny");
+    }
+    
+    /**
+     * Set the apiRoot
+     * @param string apiRoot new API root URL, no trailing slash "https://www.bungie.net/Platform/Destiny"
+     */
+    public function setApiRoot($apiRoot) {
+      $this->apiRoot = $apiRoot;
     }
 
+    /**
+     * Returns the current version of the manifest as a json object.
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    public function fetchManifest() {
+      $url = sprintf("%s%s", $this->apiRoot, "/Manifest/");
+
+      return $this->fetchData($url);
+    }
+    
+    public function fetchExplorerItems() {
+      $url = sprintf("%s%s", $this->apiRoot, "/Explorer/Items/?definitions=true");
+      
+      return $this->fetchData($url);
+    }
+    
+    /**
+     * Fetches all items that a user has
+     * @param string $membershipId
+     * @param string $platform
+     */
+    public function fetchMemberItems($membershipId, $platform = DESTINY_PLATFORM_XBOX) {
+      $url = sprintf("%s/%s/Account/%s/Items/", $this->apiRoot, $platform, $membershipId);
+      
+      return $this->fetchData($url);
+    }
+    /**
+     * Returns the specific item from the current manifest a json object.
+     * @param string $type
+     * @param string $id
+     * @return string The raw JSON as returned from Bungie's API
+     */
     public function fetchManifestById($type, $id) {
-      $url = sprintf("https://www.bungie.net/Platform/Destiny/Manifest/%s/%s/", $type, $id);
+      $url = sprintf("%s/Manifest/%s/%s/", $this->apiRoot, $type, $id);
 
       return $this->fetchData($url);
     }
@@ -58,7 +113,7 @@
      */
     public function fetchPlayerDetails($gamertag, $platform = DESTINY_PLATFORM_XBOX) {
       $gamertag = str_replace(' ', '%20', $gamertag);
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/SearchDestinyPlayer/%s/%s/", $platform, $gamertag);
+      $url = sprintf("%s/SearchDestinyPlayer/%s/%s/", $this->apiRoot, $platform, $gamertag);
 
       return $this->fetchData($url);
     }
@@ -71,7 +126,7 @@
      */
     public function fetchMembershipId($gamertag, $membershipType = DESTINY_PLATFORM_XBOX) {
       $gamertag = str_replace(' ', '%20', $gamertag);
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Stats/GetMembershipIdByDisplayName/%s/", $membershipType, $gamertag);
+      $url = sprintf("%s/%s/Stats/GetMembershipIdByDisplayName/%s/", $this->apiRoot, $membershipType, $gamertag);
 
       return $this->fetchData($url);
     }
@@ -83,7 +138,7 @@
      * @return string The raw JSON as returned from Bungie's API
      */
     public function fetchCharacters($membershipId, $platform = DESTINY_PLATFORM_XBOX) {
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/%s/Account/%s/Summary/", $platform, $membershipId);
+      $url = sprintf("%s/%s/Account/%s/Summary/", $this->apiRoot, $platform, $membershipId);
 
       return $this->fetchData($url);
     }
@@ -98,8 +153,8 @@
      * @param string $platform (\PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX | \PHPDestinyAPIClient\DESTINY_PLATFORM_PS). Defaults to \PHPDestinyAPIClient\DESTINY_PLATFORM_XBOX.
      * @return string The raw JSON as returned from Bungie's API
      */
-    public function fetchActivity($membershipId, $characterId, $activityType = 'None', $page = 0, $definitions = 'false', $platform = DESTINY_PLATFORM_XBOX) {
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/ActivityHistory/%s/%s/%s/?mode=%s&page=%s&definitions=%s", $platform, $membershipId, $characterId, $activityType, $page, $definitions);
+    public function fetchActivity($membershipId, $characterId, $activityType = 'None', $page = 0, $platform = DESTINY_PLATFORM_XBOX, $definitions = 'false') {
+      $url = sprintf("%s/Stats/ActivityHistory/%s/%s/%s/?mode=%s&page=%s&definitions=%s", $this->apiRoot, $platform, $membershipId, $characterId, $activityType, $page, $definitions);
 
       return $this->fetchData($url);
     }
@@ -110,7 +165,7 @@
      * @return string The raw JSON as returned from Bungie's API
      */
     public function fetchPostGameCarnageReport($activityId) {
-      $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/PostGameCarnageReport/%s/", $activityId);
+      $url = sprintf("%s/Stats/PostGameCarnageReport/%s/", $this->apiRoot, $activityId);
 
       return $this->fetchData($url);
     }
@@ -125,10 +180,21 @@
      */
     public function fetchCharacterStats($membershipId, $characterId, $activityType = NULL, $platform = DESTINY_PLATFORM_XBOX) {
       if ($mode)
-        $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/%s/%s/%s/?modes=%s", $platform, $membershipId, $characterId, $mode);
+        $url = sprintf("%s/Stats/%s/%s/%s/?modes=%s", $this->apiRoot, $platform, $membershipId, $characterId, $mode);
       else
-        $url = sprintf("http://www.bungie.net/Platform/Destiny/Stats/%s/%s/%s/", $platform, $membershipId, $characterId);
+        $url = sprintf("%s/Stats/%s/%s/%s/", $this->apiRoot, $platform, $membershipId, $characterId);
         
       return $this->fetchData($url);
+    }
+    
+    /**
+     * Overrides parent to ensure X-API-Key header is set for each request
+     * @param string $url Url for GET or POST request. 
+     * @param string $json JSON string that might be posted to service
+     * @return string The raw JSON as returned from Bungie's API
+     */
+    private function fetchData($url, $json = null) {
+      $this->setHeader("X-API-Key", $this->apiKey);
+      return parent::fetchData($url, $json);
     }
   }
