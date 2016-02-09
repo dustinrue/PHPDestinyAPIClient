@@ -201,7 +201,7 @@
     
     
     
-    public function fetchData($url, $json = null) {
+    protected function fetchData($url, $json = null) {
       //$this->setHeader('Content-Type', 'application/json');
       //$this->setHeader('Accept', 'application/json');
       

@@ -193,7 +193,7 @@
      * @param string $json JSON string that might be posted to service
      * @return string The raw JSON as returned from Bungie's API
      */
-    private function fetchData($url, $json = null) {
+    protected function fetchData($url, $json = null) {
       $this->setHeader("X-API-Key", $this->apiKey);
       return parent::fetchData($url, $json);
     }
